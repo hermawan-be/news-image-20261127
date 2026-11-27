@@ -10,7 +10,29 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 1024, 1024
-OUT = os.path.join(os.environ.get("MAKEFUN_OUTPUT_DIR", "."), "entry.png")
+def _out_candidates():
+    """Output locations in order: env dir, /output, /tmp."""
+    env_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or ""
+    seen = []
+    for d in (env_dir, "/output", "/tmp"):
+        if d and d not in seen:
+            seen.append(d)
+    return [os.path.join(d, "entry.png") for d in seen]
+
+
+def save_image(img):
+    """Save to the first writable output location; return the path used."""
+    for path in _out_candidates():
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except OSError:
+            pass
+        try:
+            img.save(path)
+            return path
+        except OSError:
+            continue
+    raise OSError("no writable output location for entry.png")
 
 _FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 FONT_REG = os.path.join(_FONT_DIR, "DejaVuSans.ttf")
@@ -187,9 +209,9 @@ def main():
     draw.text(((WIDTH - tw) / 2, HEIGHT - 44), foot,
               font=foot_font, fill=FOOTER_FG)
 
-    img.save(OUT)
-    print("wrote", OUT, img.size)
-    verify_output(OUT)
+    out_path = save_image(img)
+    print("wrote", out_path, img.size)
+    verify_output(out_path)
 
 
 if __name__ == "__main__":
