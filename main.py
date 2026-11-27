@@ -12,8 +12,9 @@ from PIL import Image, ImageDraw, ImageFont
 WIDTH, HEIGHT = 1024, 1024
 OUT = os.path.join(os.environ.get("MAKEFUN_OUTPUT_DIR", "."), "entry.png")
 
-FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+_FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+FONT_REG = os.path.join(_FONT_DIR, "DejaVuSans.ttf")
+FONT_BOLD = os.path.join(_FONT_DIR, "DejaVuSans-Bold.ttf")
 
 # ---- palette ---------------------------------------------------------------
 BG = (13, 27, 46)          # deep navy page
@@ -82,7 +83,12 @@ STORIES = [
 
 
 def font(path, size):
-    return ImageFont.truetype(path, size)
+    for candidate in (path, os.path.join("/usr/share/fonts/truetype/dejavu", os.path.basename(path))):
+        try:
+            return ImageFont.truetype(candidate, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
 
 
 def wrap(draw, text, fnt, max_width):
