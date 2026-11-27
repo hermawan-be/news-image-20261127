@@ -5,10 +5,12 @@ Deterministic, no network access. Only Pillow + the standard library.
 Run:  python3 main.py
 """
 
+import os
+
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 1024, 1024
-OUT = "entry.png"
+OUT = os.path.join(os.environ.get("MAKEFUN_OUTPUT_DIR", "."), "entry.png")
 
 FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
